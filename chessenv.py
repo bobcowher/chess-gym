@@ -41,7 +41,7 @@ class ChessEnv(gym.Env):
 
     def reset(self):
         self.board.reset()
-        return self._get_obs()
+        return self._get_obs(), self._get_info()
     
     def step(self, action):
         move = self._decode_action(action)
@@ -49,9 +49,9 @@ class ChessEnv(gym.Env):
             self.board.push(move)
             reward = self._get_reward()
             done = self.board.is_game_over()
-            return self._get_obs(), reward, done, {}
+            return self._get_obs(), reward, done, self._get_info()
         else:
-            return self._get_obs(), -1, True, {}  # Illegal move penalty
+            return self._get_obs(), -1, True, self._get_info()  # Illegal move penalty
     
     def _decode_action(self, action):
         moves = list(self.board.legal_moves)
@@ -64,7 +64,9 @@ class ChessEnv(gym.Env):
         obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)  # Shape: (1, 12, 8, 8)
         return obs_tensor 
 
-    
+    def _get_info(self):
+        return {'current_player': self.get_current_player()}
+
     def _board_to_array(self):
         piece_map = {
             chess.PAWN: 0, chess.KNIGHT: 1, chess.BISHOP: 2, chess.ROOK: 3,
@@ -82,6 +84,8 @@ class ChessEnv(gym.Env):
     def _get_reward(self):
         if self.board.is_checkmate():
             return 1
+        else:
+            return 0
 
     def render(self):
         if self.render_mode == "human":
