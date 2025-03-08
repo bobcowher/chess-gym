@@ -4,7 +4,8 @@ import time
 
 
 # Example usage
-env = ChessEnv(render_mode='frank')
+#env = ChessEnv(render_mode='rgb_array')
+env = ChessEnv(render_mode='human')
 obs = env.reset()
 env.render()
 
