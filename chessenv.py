@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import cairosvg
 import pygame
+import torch
 
 class ChessEnv(gym.Env):
     def __init__(self, render_mode='rgb_array'):
@@ -20,13 +21,23 @@ class ChessEnv(gym.Env):
             raise ValueError(f"Render mode must be either rgb_array or human. Render mode was passed in as {render_mode}")
         
         self.render_mode = render_mode
+        self.white = chess.WHITE
+        self.black = chess.BLACK
 
         if(self.render_mode == 'human'):
+            pygame.init()
             self.width = 600
             self.height = 600
             self.screen = pygame.display.set_mode((self.width, self.height))
             pygame.display.set_caption("Chess RL Environment")
             self.running = True
+
+    def get_current_player(self):
+        if(chess.WHITE == self.board.turn):
+            return 0
+        else:
+            return 1
+        # white is represented by a 0, black by 1
 
     def reset(self):
         self.board.reset()
@@ -49,7 +60,10 @@ class ChessEnv(gym.Env):
         return moves[0]  # Default to first move (should not happen in a well-trained model)
     
     def _get_obs(self):
-        return self._board_to_array()
+        obs = self._board_to_array()
+        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)  # Shape: (1, 12, 8, 8)
+        return obs_tensor 
+
     
     def _board_to_array(self):
         piece_map = {
@@ -62,24 +76,35 @@ class ChessEnv(gym.Env):
             x, y = divmod(square, 8)
             idx = piece_map[piece.piece_type] + (6 if piece.color == chess.BLACK else 0)
             board_array[x, y, idx] = 1.0
-        
+
         return board_array
     
     def _get_reward(self):
         if self.board.is_checkmate():
-            return 1 if self.board.turn == chess.BLACK else -1
-        return 0
-
+            return 1
 
     def render(self):
         if self.render_mode == "human":
-            svg = chess.svg.board(self.board, size=350)  # Generates an SVG
-            png = BytesIO()
-            cairosvg.svg2png(bytestring=svg.encode('utf-8'), write_to=png)  # Convert SVG to PNG
-            image = Image.open(png)
-            plt.imshow(image)
-            plt.axis("off")
-            plt.show()
+            # Process Pygame events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
+
+            # Convert chess SVG to PNG using cairosvg
+            svg = chess.svg.board(self.board, size=600)
+            png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
+            
+            # Load image using PIL
+            image = Image.open(BytesIO(png_bytes))
+            mode = image.mode
+            size = image.size
+            data = image.tobytes()
+
+            # Convert to Pygame surface
+            pygame_image = pygame.image.fromstring(data, size, mode)
+            self.screen.blit(pygame_image, (0, 0))
+            pygame.display.flip()
         elif self.render_mode == "ascii":
             print(self.board)
 
