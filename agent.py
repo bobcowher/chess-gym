@@ -78,14 +78,10 @@ class Agent():
 
                 reward = 0
 
-                for i in range(self.step_repeat):
-                    reward_temp = 0
-                    next_obs, reward_temp, done, info = self.env.step(action=action)
+                next_obs, reward, done, info = self.env.step(action=action)
 
-                    reward += reward_temp
-
-                    if(done):
-                        break
+                if(done):
+                    break
 
                 
                 if(player == 1): # If player is 1, mark as "enemy" and invert rewards.
