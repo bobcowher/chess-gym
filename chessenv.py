@@ -9,6 +9,7 @@ from io import BytesIO
 import cairosvg
 import pygame
 import torch
+import random
 
 class ChessEnv(gym.Env):
     def __init__(self, render_mode='rgb_array'):
@@ -43,22 +44,41 @@ class ChessEnv(gym.Env):
         self.board.reset()
         return self._get_obs(), self._get_info()
     
+
     def step(self, action):
-        move = self._decode_action(action)
-        if move in self.board.legal_moves:
-            self.board.push(move)
-            reward = self._get_reward()
-            done = self.board.is_game_over()
-            return self._get_obs(), reward, done, self._get_info()
+        """ Executes a move in the environment. Returns next state, reward, done flag, and info. """
+        
+        reward = 0
+
+        legal_moves = list(self.board.legal_moves)
+
+        # Decode action into a valid chess move
+        if action < len(legal_moves):
+            move = legal_moves[action]
         else:
-            return self._get_obs(), -1, True, self._get_info()  # Illegal move penalty
-    
-    def _decode_action(self, action):
-        moves = list(self.board.legal_moves)
-        if action < len(moves):
-            return moves[action]
-        return moves[0]  # Default to first move (should not happen in a well-trained model)
-    
+            move = random.choice(legal_moves) if legal_moves else None  # Avoid crash if no moves exist
+            reward += -1
+
+        if move and move in legal_moves:
+            self.board.push(move)  # Apply move
+            reward += self._get_reward()
+            done = self.board.is_game_over()
+
+            # Debugging: Identify why the game ended
+            if done:
+                termination_reason = "Checkmate" if self.board.is_checkmate() else \
+                                    "Stalemate" if self.board.is_stalemate() else \
+                                    "Threefold Repetition" if self.board.is_repetition(3) else \
+                                    "50-Move Rule" if self.board.is_fifty_moves() else "Unknown"
+                print(f"Game Over! Reason: {termination_reason}")
+
+            return self._get_obs(), reward, done, self._get_info()
+
+        else:
+            print("Illegal move attempted! Penalizing agent and terminating episode.")
+            return self._get_obs(), -1, True, self._get_info()  # Penalize illegal move
+
+
     def _get_obs(self):
         board_tensor = torch.tensor(self._board_to_array())
         player_channel = np.full((8, 8, 1), self.board.turn == chess.WHITE, dtype=np.float32)
@@ -88,6 +108,14 @@ class ChessEnv(gym.Env):
     def _get_reward(self):
         if self.board.is_checkmate():
             return 1
+        elif self.board.is_stalemate():
+            return -0.5  # Penalize getting stuck
+
+        elif self.board.is_repetition(3):
+            return -0.5  # Penalize repeating positions
+
+        elif self.board.is_fifty_moves():
+            return -0.5  # Penalize getting stuck in a 50-move rule draw
         else:
             return 0
 
