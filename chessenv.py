@@ -57,26 +57,21 @@ class ChessEnv(gym.Env):
             move = legal_moves[action]
         else:
             move = random.choice(legal_moves) if legal_moves else None  # Avoid crash if no moves exist
-            reward += -1
 
-        if move and move in legal_moves:
-            self.board.push(move)  # Apply move
-            reward += self._get_reward()
-            done = self.board.is_game_over()
+        self.board.push(move)  # Apply move
+        reward += self._get_reward()
+        done = self.board.is_game_over()
 
-            # Debugging: Identify why the game ended
-            if done:
-                termination_reason = "Checkmate" if self.board.is_checkmate() else \
-                                    "Stalemate" if self.board.is_stalemate() else \
-                                    "Threefold Repetition" if self.board.is_repetition(3) else \
-                                    "50-Move Rule" if self.board.is_fifty_moves() else "Unknown"
-                print(f"Game Over! Reason: {termination_reason}")
+        # Debugging: Identify why the game ended
+        if done:
+            termination_reason = "Checkmate" if self.board.is_checkmate() else \
+                                "Stalemate" if self.board.is_stalemate() else \
+                                "Threefold Repetition" if self.board.is_repetition(3) else \
+                                "50-Move Rule" if self.board.is_fifty_moves() else "Unknown"
+            print(f"Game Over! Reason: {termination_reason}")
 
-            return self._get_obs(), reward, done, self._get_info()
+        return self._get_obs(), reward, done, self._get_info()
 
-        else:
-            print("Illegal move attempted! Penalizing agent and terminating episode.")
-            return self._get_obs(), -1, True, self._get_info()  # Penalize illegal move
 
 
     def _get_obs(self):

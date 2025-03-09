@@ -78,10 +78,6 @@ class Agent():
 
                 next_obs, reward, done, info = self.env.step(action=action)
 
-                if(done):
-                    break
-
-                
                 if(player == 1 and reward == 1): # If player is 1, mark as "enemy" and invert rewards.
                     reward *= -1
 

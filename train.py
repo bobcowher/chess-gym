@@ -9,12 +9,12 @@ max_episode_steps = max_episode_steps / step_repeat
 
 batch_size = 64
 learning_rate = 0.0001
-epsilon = 0.1
+epsilon = 1.0
 min_epsilon = 0.1
 epsilon_decay = 0.995
 gamma = 0.99
 
-hidden_layer = 128
+hidden_layer = 512
 
 # print(observation.shape)
 
