@@ -60,9 +60,13 @@ class ChessEnv(gym.Env):
         return moves[0]  # Default to first move (should not happen in a well-trained model)
     
     def _get_obs(self):
-        obs = self._board_to_array()
-        obs_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)  # Shape: (1, 12, 8, 8)
-        return obs_tensor 
+        board_tensor = torch.tensor(self._board_to_array())
+        player_channel = np.full((8, 8, 1), self.board.turn == chess.WHITE, dtype=np.float32)
+        # board_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)  # Shape: (1, 12, 8, 8)
+        obs_with_player = np.concatenate([board_tensor, player_channel], axis=-1)
+        obs = obs_with_player.permute(2, 0, 1).unsqueeze(0)
+
+        return obs 
 
     def _get_info(self):
         return {'current_player': self.get_current_player()}

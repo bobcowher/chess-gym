@@ -9,7 +9,6 @@ class ReplayBuffer():
         self.mem_ctr = 0
         self.state_memory = np.zeros((self.mem_size, *input_shape), dtype=np.uint8)
         self.next_state_memory = np.zeros((self.mem_size, *input_shape), dtype=np.uint8)
-        self.player_memory = np.zeros(self.mem_size, dtype=np.uint8)
         self.action_memory = np.zeros(self.mem_size, dtype=np.float32)
         self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
         self.terminal_memory = np.zeros(self.mem_size, dtype=bool)
@@ -31,7 +30,6 @@ class ReplayBuffer():
         self.action_memory[index] = torch.tensor(action).detach().cpu()
         self.reward_memory[index] = reward
         self.terminal_memory[index] = done
-        self.player_memory[index] = player
 
         self.mem_ctr += 1
 
@@ -44,7 +42,6 @@ class ReplayBuffer():
         actions = self.action_memory[batch]
         rewards = self.reward_memory[batch]
         dones = self.terminal_memory[batch]
-        players = self.player_memory[batch]
 
         # Convert to PyTorch tensors
         states = torch.tensor(states, dtype=torch.float32).to(self.device)
@@ -52,8 +49,5 @@ class ReplayBuffer():
         actions = torch.tensor(actions, dtype=torch.float32).to(self.device)
         rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
         dones = torch.tensor(dones, dtype=torch.bool).to(self.device)
-        players = torch.tensor(players, dtype=torch.uint8).to(self.device)
 
-        print("Players: ", players)
-
-        return states, actions, rewards, next_states, dones, players
+        return states, actions, rewards, next_states, dones 

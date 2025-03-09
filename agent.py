@@ -26,7 +26,7 @@ class Agent():
         
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-        self.memory = ReplayBuffer(max_size=500000, input_shape=[12, 8, 8], n_actions=env.action_space.n, device=self.device)
+        self.memory = ReplayBuffer(max_size=500000, input_shape=[13, 8, 8], n_actions=env.action_space.n, device=self.device)
 
         self.model = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
 
@@ -107,8 +107,7 @@ class Agent():
 
                     # Current Q-values from both models
                     print(observations)
-                    print(players)
-                    q_values = self.model(observations, players.unsqueeze(1))
+                    q_values = self.model(observations)
                     actions = actions.unsqueeze(1).long()
                     qsa_batch = q_values.gather(1, actions)
 
