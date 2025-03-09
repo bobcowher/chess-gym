@@ -37,7 +37,7 @@ class Model(nn.Module):
         # Add in the player variable. 
         print(x)
         print(p)
-        x = torch.cat([x, p.unsqueeze(0)], dim=1)
+        x = torch.cat([x, p], dim=1)
         # Fully connected layers with optional dropout
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

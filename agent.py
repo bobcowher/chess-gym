@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 import random
 import os
 import pygame
+import sys
 
 class Agent():
 
@@ -25,7 +26,7 @@ class Agent():
         
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-        self.memory = ReplayBuffer(max_size=500000, input_shape=obs.shape, n_actions=env.action_space.n, device=self.device)
+        self.memory = ReplayBuffer(max_size=500000, input_shape=[12, 8, 8], n_actions=env.action_space.n, device=self.device)
 
         self.model = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
 
@@ -62,12 +63,18 @@ class Agent():
 
             while not done and episode_steps < max_episode_steps:
 
+                player = self.env.get_current_player()
+                
                 if random.random() < epsilon:
                     action = self.env.action_space.sample()
                 else:
-                    q_values = self.model.forward(obs.to(self.device), 
-                                                  torch.tensor([self.env.get_current_player()])
-                                                  .to(self.device))[0]
+                    if(player == 0): # Take actions for player 0. 
+                        q_values = self.model.forward(obs.to(self.device), 
+                                                      torch.tensor([player]).to(self.device).unsqueeze(1))
+                        action = torch.argmax(q_values, dim=-1).item()
+                    else:
+                        action = self.env.action_space.sample()
+
                     action = torch.argmax(q_values, dim=-1).item()
 
                 reward = 0
@@ -81,7 +88,11 @@ class Agent():
                     if(done):
                         break
 
-                self.memory.store_transition(obs, action, reward, next_obs, done)
+                
+                if(player == 1): # If player is 1, mark as "enemy" and invert rewards.
+                    reward *= -1
+
+                self.memory.store_transition(obs, action, reward, next_obs, done, player)
 
                 obs = next_obs        
 
@@ -95,7 +106,9 @@ class Agent():
                     dones = dones.unsqueeze(1).float()
 
                     # Current Q-values from both models
-                    q_values = self.model(observations)
+                    print(observations)
+                    print(players)
+                    q_values = self.model(observations, players.unsqueeze(1))
                     actions = actions.unsqueeze(1).long()
                     qsa_batch = q_values.gather(1, actions)
 

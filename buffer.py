@@ -23,7 +23,7 @@ class ReplayBuffer():
         else:
             return False
 
-    def store_transition(self, state, action, reward, next_state, done):
+    def store_transition(self, state, action, reward, next_state, done, player):
         index = self.mem_ctr % self.mem_size
 
         self.state_memory[index] = state
@@ -31,6 +31,7 @@ class ReplayBuffer():
         self.action_memory[index] = torch.tensor(action).detach().cpu()
         self.reward_memory[index] = reward
         self.terminal_memory[index] = done
+        self.player_memory[index] = player
 
         self.mem_ctr += 1
 
@@ -43,6 +44,7 @@ class ReplayBuffer():
         actions = self.action_memory[batch]
         rewards = self.reward_memory[batch]
         dones = self.terminal_memory[batch]
+        players = self.player_memory[batch]
 
         # Convert to PyTorch tensors
         states = torch.tensor(states, dtype=torch.float32).to(self.device)
@@ -50,29 +52,8 @@ class ReplayBuffer():
         actions = torch.tensor(actions, dtype=torch.float32).to(self.device)
         rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
         dones = torch.tensor(dones, dtype=torch.bool).to(self.device)
+        players = torch.tensor(players, dtype=torch.uint8).to(self.device)
 
-        return states, actions, rewards, next_states, dones
+        print("Players: ", players)
 
-
-    def save_to_csv(self, filename='checkpoints/memory.npz'):
-        np.savez(filename,
-                 state=self.state_memory[:self.mem_ctr],
-                 action=self.action_memory[:self.mem_ctr],
-                 reward=self.reward_memory[:self.mem_ctr],
-                 next_state=self.new_state_memory[:self.mem_ctr],
-                 done=self.terminal_memory[:self.mem_ctr])
-        print(f"Saved {filename}")
-
-    def load_from_csv(self, filename='checkpoints/memory.npz'):
-        try:
-            data = np.load(filename)
-            self.mem_ctr = len(data['state'])
-            self.state_memory[:self.mem_ctr] = data['state']
-            self.action_memory[:self.mem_ctr] = data['action']
-            self.reward_memory[:self.mem_ctr] = data['reward']
-            self.new_state_memory[:self.mem_ctr] = data['next_state']
-            self.terminal_memory[:self.mem_ctr] = data['done']
-            print(f"Successfully loaded {filename} into memory")
-            print(f"{self.mem_ctr} memories loaded")
-        except:
-            print(f"Unable to load memory from ")
+        return states, actions, rewards, next_states, dones, players
