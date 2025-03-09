@@ -9,7 +9,7 @@ max_episode_steps = max_episode_steps / step_repeat
 
 batch_size = 64
 learning_rate = 0.0001
-epsilon = 1
+epsilon = 0.1
 min_epsilon = 0.1
 epsilon_decay = 0.995
 gamma = 0.99

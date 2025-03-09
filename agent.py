@@ -74,8 +74,6 @@ class Agent():
                     else:
                         action = self.env.action_space.sample()
 
-                    action = torch.argmax(q_values, dim=-1).item()
-
                 reward = 0
 
                 next_obs, reward, done, info = self.env.step(action=action)
