@@ -69,8 +69,7 @@ class Agent():
                     action = self.env.action_space.sample()
                 else:
                     if(player == 0): # Take actions for player 0. 
-                        q_values = self.model.forward(obs.to(self.device), 
-                                                      torch.tensor([player]).to(self.device).unsqueeze(1))
+                        q_values = self.model.forward(obs.to(self.device))
                         action = torch.argmax(q_values, dim=-1).item()
                     else:
                         action = self.env.action_space.sample()
@@ -106,7 +105,6 @@ class Agent():
                     dones = dones.unsqueeze(1).float()
 
                     # Current Q-values from both models
-                    print(observations)
                     q_values = self.model(observations)
                     actions = actions.unsqueeze(1).long()
                     qsa_batch = q_values.gather(1, actions)

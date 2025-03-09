@@ -63,7 +63,7 @@ class ChessEnv(gym.Env):
         board_tensor = torch.tensor(self._board_to_array())
         player_channel = np.full((8, 8, 1), self.board.turn == chess.WHITE, dtype=np.float32)
         # board_tensor = torch.tensor(obs).permute(2, 0, 1).unsqueeze(0)  # Shape: (1, 12, 8, 8)
-        obs_with_player = np.concatenate([board_tensor, player_channel], axis=-1)
+        obs_with_player = torch.tensor(np.concatenate([board_tensor, player_channel], axis=-1))
         obs = obs_with_player.permute(2, 0, 1).unsqueeze(0)
 
         return obs 
