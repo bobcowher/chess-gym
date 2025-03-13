@@ -103,14 +103,6 @@ class ChessEnv(gym.Env):
     def _get_reward(self):
         if self.board.is_checkmate():
             return 1
-        elif self.board.is_stalemate():
-            return -0.5  # Penalize getting stuck
-
-        elif self.board.is_repetition(3):
-            return -0.5  # Penalize repeating positions
-
-        elif self.board.is_fifty_moves():
-            return -0.5  # Penalize getting stuck in a 50-move rule draw
         else:
             return 0
 

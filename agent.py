@@ -78,8 +78,11 @@ class Agent():
 
                 next_obs, reward, done, info = self.env.step(action=action)
 
-                if(player == 1 and reward == 1): # If player is 1, mark as "enemy" and invert rewards.
-                    reward *= -1
+                if(reward != 0): # If player is 1, mark as "enemy" and invert rewards.
+                    print(f"Player {player} reward {reward}")
+                    if(player == 1):
+                        reward *= -1
+
 
                 self.memory.store_transition(obs, action, reward, next_obs, done, player)
 
