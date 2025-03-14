@@ -159,8 +159,8 @@ class Agent():
                     self.optimizer_1.step()
 
                     # Update the target models periodically
-                    if episode_steps % 4 == 0:
-                        soft_update(self.target_model, self.model)
+                    if total_steps % 1000 == 0:
+                        hard_update(self.target_model, self.model)
 
             self.model.save_the_model()
 
