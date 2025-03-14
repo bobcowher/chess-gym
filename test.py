@@ -1,7 +1,7 @@
 from agent import Agent
 from chessenv import ChessEnv
 
-episodes = 50000
+episodes = 10000
 max_episode_steps = 10000
 total_steps = 0
 step_repeat = 4
@@ -20,7 +20,8 @@ hidden_layer = 512
 
 # Constants
 
-env = ChessEnv(render_mode='none')
+env = ChessEnv(render_mode='human')
+env.reset()
 
 
 summary_writer_suffix = f'dqn_lr={learning_rate}_hl={hidden_layer}_mse_loss_bs={batch_size}_double_dqn'
@@ -30,10 +31,4 @@ agent = Agent(env, hidden_layer=hidden_layer,
               gamma=gamma)
 
 
-# Training Phase 1
-
-agent.train(episodes=episodes, max_episode_steps=max_episode_steps, summary_writer_suffix=summary_writer_suffix + "-phase-1",
-            batch_size=batch_size, epsilon=epsilon, epsilon_decay=epsilon_decay,
-            min_epsilon=min_epsilon)
-    
-
+agent.test()

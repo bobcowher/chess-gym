@@ -42,6 +42,43 @@ class Agent():
         print(f"Initialized agents on device: {self.device}")
 
 
+    def test(self):
+
+        total_steps = 0
+
+        done = False
+        episode_reward = 0
+        obs, info = self.env.reset()
+
+        while not done:
+
+            player = self.env.get_current_player()
+            
+            if(player == 0): # Take actions for player 0. 
+                q_values = self.model.forward(obs.to(self.device))
+                action = torch.argmax(q_values, dim=-1).item()
+            else:
+                action = self.env.action_space.sample()
+
+            reward = 0
+
+            next_obs, reward, done, info = self.env.step(action=action)
+
+            if(reward != 0): # If player is 1, mark as "enemy" and invert rewards.
+                print(f"Player {player} reward {reward}")
+                if(player == 1):
+                    reward *= -1
+
+
+            self.memory.store_transition(obs, action, reward, next_obs, done, player)
+
+            obs = next_obs        
+
+            time.sleep(1)
+            self.env.render()
+
+
+
     def train(self, episodes, max_episode_steps, summary_writer_suffix, batch_size, epsilon, epsilon_decay, min_epsilon):
         summary_writer_name = f'runs/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{summary_writer_suffix}'
         writer = SummaryWriter(summary_writer_name)
