@@ -82,7 +82,7 @@ class Agent():
 
 
 
-    def train(self, episodes, max_episode_steps, summary_writer_suffix, batch_size, epsilon, epsilon_decay, min_epsilon):
+    def train(self, episodes, max_episode_steps, summary_writer_suffix, batch_size, epsilon, epsilon_decay, min_epsilon, tau):
         summary_writer_name = f'runs/{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{summary_writer_suffix}'
         writer = SummaryWriter(summary_writer_name)
 
@@ -182,8 +182,10 @@ class Agent():
 
                     # Update the target models periodically
                     if total_steps % 1000 == 0:
-                        hard_update(self.target_model_1, self.model_1)
-                        hard_update(self.target_model_2, self.model_2)
+                        soft_update(self.target_model_1, self.model_1, tau)
+                        soft_update(self.target_model_2, self.model_2, tau)
+                        # hard_update(self.target_model_1, self.model_1)
+                        # hard_update(self.target_model_2, self.model_2)
 
             self.model_1.save_the_model(filename="models/model_1")
             self.model_2.save_the_model(filename="models/model_2")

@@ -10,6 +10,7 @@ epsilon = 1.0
 min_epsilon = 0.1
 epsilon_decay = 0.995
 gamma = 0.99
+tau = 0.005
 
 hidden_layer = 1024
 
@@ -31,6 +32,6 @@ agent = Agent(env, hidden_layer=hidden_layer,
 
 agent.train(episodes=episodes, max_episode_steps=max_episode_steps, summary_writer_suffix=summary_writer_suffix + "-phase-1",
             batch_size=batch_size, epsilon=epsilon, epsilon_decay=epsilon_decay,
-            min_epsilon=min_epsilon)
+            min_epsilon=min_epsilon, tau=tau)
     
 
