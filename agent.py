@@ -167,7 +167,8 @@ class Agent():
                     loss_1 = F.mse_loss(qsa_batch_1, target_b.detach())
                     loss_2 = F.mse_loss(qsa_batch_2, target_b.detach())
 
-                    writer.add_scalar("Loss/model", loss.item(), total_steps)
+                    writer.add_scalar("Loss/model_1", loss_1.item(), total_steps)
+                    writer.add_scalar("Loss/model_2", loss_2.item(), total_steps)
 
                     # Backpropagation and optimization step for both models
                     self.model_1.zero_grad()
