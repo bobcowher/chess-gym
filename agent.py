@@ -181,7 +181,7 @@ class Agent():
                     self.optimizer_2.step()
 
                     # Update the target models periodically
-                    if total_steps % 1000 == 0:
+                    if total_steps % 100 == 0:
                         soft_update(self.target_model_1, self.model_1, tau)
                         soft_update(self.target_model_2, self.model_2, tau)
                         # hard_update(self.target_model_1, self.model_1)
