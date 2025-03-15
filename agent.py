@@ -26,14 +26,18 @@ class Agent():
 
         self.memory = ReplayBuffer(max_size=500000, input_shape=[13, 8, 8], n_actions=env.action_space.n, device=self.device)
 
-        self.model = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
+        self.model_1 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
+        self.model_2 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
 
-        self.target_model = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
+        self.target_model_1 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
+        self.target_model_2 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
 
         # Initialize target networks with model parameters
-        self.target_model.load_state_dict(self.model.state_dict())
+        self.target_model_1.load_state_dict(self.model_1.state_dict())
+        self.target_model_2.load_state_dict(self.model_2.state_dict())
 
-        self.optimizer_1 = optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer_1 = optim.Adam(self.model_1.parameters(), lr=learning_rate)
+        self.optimizer_2 = optim.Adam(self.model_2.parameters(), lr=learning_rate)
 
         self.learning_rate = learning_rate
 
@@ -53,7 +57,8 @@ class Agent():
             player = self.env.get_current_player()
             
             if(player == 0): # Take actions for player 0. 
-                q_values = self.model.forward(obs.to(self.device))
+                q_values = torch.min(self.model_1.forward(obs.to(self.device)), 
+                                     self.model_2.forward(obs.to(self.device)))
                 action = torch.argmax(q_values, dim=-1).item()
             else:
                 action = self.env.action_space.sample()
@@ -104,7 +109,8 @@ class Agent():
                     action = self.env.action_space.sample()
                 else:
                     if(player == 0): # Take actions for player 0. 
-                        q_values = self.model.forward(obs.to(self.device))
+                        q_values = torch.min(self.model_1.forward(obs.to(self.device)), 
+                                             self.model_2.forward(obs.to(self.device)))
                         action = torch.argmax(q_values, dim=-1).item()
                     else:
                         action = self.env.action_space.sample()
@@ -133,15 +139,23 @@ class Agent():
                     dones = dones.unsqueeze(1).float()
 
                     # Current Q-values from both models
-                    q_values = self.model(observations)
+                    q_values_1 = self.model_1(observations)
+                    q_values_2 = self.model_2(observations)
+
                     actions = actions.unsqueeze(1).long()
-                    qsa_batch = q_values.gather(1, actions)
+                    qsa_batch_1 = q_values_1.gather(1, actions)
+                    qsa_batch_2 = q_values_2.gather(1, actions)
+
+                    qsa_batch = torch.min(qsa_batch_1, qsa_batch_2)
 
                     # Action selection using the main models
-                    next_actions = torch.argmax(self.model(next_observations), dim=1, keepdim=True)
+                    next_actions = torch.argmax(self.model_1(next_observations), dim=1, keepdim=True)
 
                     # Q-value evaluation using the target models
-                    next_q_values = self.target_model(next_observations).gather(1, next_actions)
+                    next_q_values_1 = self.target_model_1(next_observations).gather(1, next_actions)
+                    next_q_values_2 = self.target_model_2(next_observations).gather(1, next_actions)
+
+                    next_q_values = torch.min(next_q_values_1, next_q_values_2)
 
                     # Compute the target using Double DQN with minimization
                     target_b = rewards.unsqueeze(1) + (1 - dones) * self.gamma * next_q_values
@@ -152,15 +166,21 @@ class Agent():
                     writer.add_scalar("Loss/model", loss.item(), total_steps)
 
                     # Backpropagation and optimization step for both models
-                    self.model.zero_grad()
+                    self.model_1.zero_grad()
+                    self.model_2.zero_grad()
+                    
                     loss.backward()
+                    
                     self.optimizer_1.step()
+                    self.optimizer_2.step()
 
                     # Update the target models periodically
                     if total_steps % 1000 == 0:
-                        hard_update(self.target_model, self.model)
+                        hard_update(self.target_model_1, self.model_1)
+                        hard_update(self.target_model_2, self.model_2)
 
-            self.model.save_the_model()
+            self.model_1.save_the_model(filename="models/model_1")
+            self.model_2.save_the_model(filename="models/model_2")
 
             writer.add_scalar('Score', episode_reward, episode)
             writer.add_scalar('Epsilon', epsilon, episode)
