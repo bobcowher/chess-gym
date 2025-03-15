@@ -146,10 +146,13 @@ class Agent():
                     qsa_batch_1 = q_values_1.gather(1, actions)
                     qsa_batch_2 = q_values_2.gather(1, actions)
 
-                    qsa_batch = torch.min(qsa_batch_1, qsa_batch_2)
-
                     # Action selection using the main models
-                    next_actions = torch.argmax(self.model_1(next_observations), dim=1, keepdim=True)
+                    if random.random() < 0.5:
+                        next_actions = torch.argmax(self.model_1(next_observations), dim=1, keepdim=True)
+                        next_q_values = self.target_model_2(next_observations).gather(1, next_actions)
+                    else:
+                        next_actions = torch.argmax(self.model_2(next_observations), dim=1, keepdim=True)
+                        next_q_values = self.target_model_1(next_observations).gather(1, next_actions)
 
                     # Q-value evaluation using the target models
                     next_q_values_1 = self.target_model_1(next_observations).gather(1, next_actions)
@@ -161,7 +164,8 @@ class Agent():
                     target_b = rewards.unsqueeze(1) + (1 - dones) * self.gamma * next_q_values
 
                     # Calculate the loss for both models
-                    loss = F.mse_loss(qsa_batch, target_b.detach())
+                    loss_1 = F.mse_loss(qsa_batch_1, target_b.detach())
+                    loss_2 = F.mse_loss(qsa_batch_2, target_b.detach())
 
                     writer.add_scalar("Loss/model", loss.item(), total_steps)
 
@@ -169,7 +173,8 @@ class Agent():
                     self.model_1.zero_grad()
                     self.model_2.zero_grad()
                     
-                    loss.backward()
+                    loss_1.backward()
+                    loss_2.backward()
                     
                     self.optimizer_1.step()
                     self.optimizer_2.step()
