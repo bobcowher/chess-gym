@@ -14,11 +14,9 @@ import sys
 
 class Agent():
 
-    def __init__(self, env, hidden_layer, learning_rate, step_repeat, gamma) -> None:
+    def __init__(self, env, hidden_layer, learning_rate, gamma) -> None:
 
         self.env = env
-
-        self.step_repeat = step_repeat
 
         self.gamma = gamma
 
