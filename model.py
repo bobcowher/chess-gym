@@ -36,7 +36,9 @@ class Model(nn.Module):
 
         # Fully connected layers with optional dropout
         x = F.relu(self.fc1(x))
+        x = F.dropout(x, 0.3)
         x = F.relu(self.fc2(x))
+        x = F.dropout(x, 0.3)
         x = F.relu(self.fc3(x))
         
         output = self.output(x)

@@ -21,7 +21,7 @@ hidden_layer = 1024
 env = ChessEnv(render_mode='none')
 
 
-summary_writer_suffix = f'dqn_lr={learning_rate}_hl={hidden_layer}_bs={batch_size}_t={tau}'
+summary_writer_suffix = f'dqn_lr={learning_rate}_hl={hidden_layer}_bs={batch_size}_t={tau}_dropout'
 
 agent = Agent(env, hidden_layer=hidden_layer,
               learning_rate=learning_rate,
