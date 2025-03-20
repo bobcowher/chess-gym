@@ -12,7 +12,7 @@ epsilon_decay = 0.995
 gamma = 0.99
 tau = 0.005
 
-hidden_layer = 1024
+hidden_layer = 256 * 2 
 
 # print(observation.shape)
 

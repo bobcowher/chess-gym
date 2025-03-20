@@ -22,8 +22,8 @@ class ChessEnv(gym.Env):
             raise ValueError(f"Render mode must be either rgb_array or human. Render mode was passed in as {render_mode}")
         
         self.render_mode = render_mode
-        self.white = chess.WHITE
-        self.black = chess.BLACK
+
+        self.reset()
 
         if(self.render_mode == 'human'):
             pygame.init()
@@ -33,6 +33,22 @@ class ChessEnv(gym.Env):
             pygame.display.set_caption("Chess RL Environment")
             self.running = True
 
+    def get_piece_count(self):
+        """Calculate the total material balance of white minus black."""
+        piece_values = {
+            chess.PAWN: 1,
+            chess.KNIGHT: 3,
+            chess.BISHOP: 3,
+            chess.ROOK: 5,
+            chess.QUEEN: 9
+        }
+
+        balance = 0
+        for piece_type, value in piece_values.items():
+            balance += len(self.board.pieces(piece_type, chess.WHITE)) * value
+            balance -= len(self.board.pieces(piece_type, chess.BLACK)) * value
+        return balance
+
     def get_current_player(self):
         if(chess.WHITE == self.board.turn):
             return 0
@@ -41,6 +57,12 @@ class ChessEnv(gym.Env):
         # white is represented by a 0, black by 1
 
     def reset(self):
+
+        self.white = chess.WHITE
+        self.black = chess.BLACK
+
+        self.piece_count = self.get_piece_count()
+        
         self.board.reset()
         return self._get_obs(), self._get_info()
     
@@ -101,10 +123,18 @@ class ChessEnv(gym.Env):
         return board_array
     
     def _get_reward(self):
+        reward = 0
+        
+        next_piece_count = self.get_piece_count()
+
+        if(next_piece_count > self.piece_count):
+            reward += 0.01
+            self.piece_count = next_piece_count
+
         if self.board.is_checkmate():
-            return 1
-        else:
-            return 0
+            reward += 1
+
+        return reward
 
     def render(self):
         if self.render_mode == "human":
