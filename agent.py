@@ -125,7 +125,6 @@ class Agent():
                 if(reward != 0): # If player is 1, mark as "enemy" and invert rewards.
                     if(player == 1):
                         reward = reward * -1
-                    print(f"Player {player} reward {reward}")
                     
 
 

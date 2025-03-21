@@ -56,8 +56,6 @@ class ChessEnv(gym.Env):
 
         self.piece_count = self.get_piece_count()
 
-        print(f"Resetting piece count to {self.piece_count}")
-
         return self._get_obs(), self._get_info()
     
 
