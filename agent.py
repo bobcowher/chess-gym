@@ -55,7 +55,7 @@ class Agent():
         while not done:
 
             player = self.env.get_current_player()
-            
+
             if(player == 0): # Take actions for player 0. 
                 q_values = torch.min(self.model_1.forward(obs.to(self.device)), 
                                      self.model_2.forward(obs.to(self.device)))
@@ -104,7 +104,8 @@ class Agent():
             while not done and episode_steps < max_episode_steps:
 
                 player = self.env.get_current_player()
-                
+
+
                 if random.random() < epsilon:
                     action = self.env.action_space.sample()
                 else:
@@ -119,10 +120,14 @@ class Agent():
 
                 next_obs, reward, done, info = self.env.step(action=action)
 
+                # print(f"Player {player}. Action: {action}. Reward: {reward}")
+                # print(f"Piece count: {self.env.get_piece_count()}")
+
                 if(reward != 0): # If player is 1, mark as "enemy" and invert rewards.
-                    print(f"Player {player} reward {reward}")
                     if(player == 1):
-                        reward *= -1
+                        reward = reward * -1
+                    print(f"Player {player} reward {reward}")
+                    
 
 
                 self.memory.store_transition(obs, action, reward, next_obs, done, player)

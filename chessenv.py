@@ -1,4 +1,5 @@
 import chess
+import time
 import chess.svg
 import numpy as np
 import gym
@@ -35,19 +36,9 @@ class ChessEnv(gym.Env):
 
     def get_piece_count(self):
         """Calculate the total material balance of white minus black."""
-        piece_values = {
-            chess.PAWN: 1,
-            chess.KNIGHT: 3,
-            chess.BISHOP: 3,
-            chess.ROOK: 5,
-            chess.QUEEN: 9
-        }
-
-        balance = 0
-        for piece_type, value in piece_values.items():
-            balance += len(self.board.pieces(piece_type, chess.WHITE)) * value
-            balance -= len(self.board.pieces(piece_type, chess.BLACK)) * value
-        return balance
+        total_pieces = len(self.board.piece_map())
+        
+        return total_pieces
 
     def get_current_player(self):
         if(chess.WHITE == self.board.turn):
@@ -61,9 +52,12 @@ class ChessEnv(gym.Env):
         self.white = chess.WHITE
         self.black = chess.BLACK
 
-        self.piece_count = self.get_piece_count()
-        
         self.board.reset()
+
+        self.piece_count = self.get_piece_count()
+
+        print(f"Resetting piece count to {self.piece_count}")
+
         return self._get_obs(), self._get_info()
     
 
@@ -127,7 +121,7 @@ class ChessEnv(gym.Env):
         
         next_piece_count = self.get_piece_count()
 
-        if(next_piece_count > self.piece_count):
+        if(next_piece_count < self.piece_count):
             reward += 0.01
             self.piece_count = next_piece_count
 
