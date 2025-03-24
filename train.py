@@ -1,18 +1,18 @@
 from agent import Agent
 from chessenv import ChessEnv
 
-episodes = 50000
+episodes = 10000
 max_episode_steps = 10000
 total_steps = 0
 batch_size = 64
 learning_rate = 0.0001
 epsilon = 1.0
 min_epsilon = 0.1
-epsilon_decay = 0.995
+epsilon_decay = 0.998
 gamma = 0.99
 tau = 0.005
 
-hidden_layer = 256 * 2 
+hidden_layer = 512 
 
 # print(observation.shape)
 
@@ -21,7 +21,7 @@ hidden_layer = 256 * 2
 env = ChessEnv(render_mode='none')
 
 
-summary_writer_suffix = f'dqn_lr={learning_rate}_hl={hidden_layer}_bs={batch_size}_t={tau}_dropout'
+summary_writer_suffix = f'dqn_lr={learning_rate}_hl={hidden_layer}_bs={batch_size}_t={tau}_deep'
 
 agent = Agent(env, hidden_layer=hidden_layer,
               learning_rate=learning_rate,

@@ -1,4 +1,4 @@
-from buffer import ReplayBuffer
+from buffer import ReplayBufferGPU
 from model import Model, soft_update, hard_update
 import torch
 import torch.optim as optim
@@ -24,7 +24,7 @@ class Agent():
         
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-        self.memory = ReplayBuffer(max_size=500000, input_shape=[13, 8, 8], n_actions=env.action_space.n, device=self.device)
+        self.memory = ReplayBufferGPU(max_size=500000, input_shape=[13, 8, 8], n_actions=env.action_space.n, device=self.device)
 
         self.model_1 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
         self.model_2 = Model(action_dim=env.action_space.n, hidden_dim=hidden_layer).to(self.device)
@@ -145,7 +145,6 @@ class Agent():
                     q_values_1 = self.model_1(observations)
                     q_values_2 = self.model_2(observations)
 
-                    actions = actions.unsqueeze(1).long()
                     qsa_batch_1 = q_values_1.gather(1, actions)
                     qsa_batch_2 = q_values_2.gather(1, actions)
 
